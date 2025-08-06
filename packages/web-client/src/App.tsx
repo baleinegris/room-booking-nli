@@ -89,7 +89,7 @@ function App() {
   return (
     <>
       <div className="bg-blue-900 p-4 rounded-lg">
-        <h1 className="text-3xl font-bold">Uoft Room Booking Escalator</h1>
+        <h1 className="text-3xl font-bold">Uoft Room Booking Escalation predictor</h1>
       </div>
       <form onSubmit={handlePredict} className="flex bg-gray-200 p-4 rounded-lg mt-4">
       <InputFieldText
