@@ -44,6 +44,7 @@ def predict(group_name, event_title, event_description, rule):
 
     bart_label_map = {0: "contradiction", 1: "neutral", 2: "entailment"}
     result = {bart_label_map[i]: probs[0][i].item() for i in range(len(bart_label_map))}
+    result["decision"] = bart_label_map[probs.argmax().item()]
     return result
 
 def explain(group_name, event_title, event_description, rule, focus_class="entailment"):
