@@ -55,14 +55,65 @@ export default function Report({
   neutral,
   decision,
   approval,
-  onExplain,
 }: Prediction) {
   const [value, setValue] = React.useState(0);
-  const [explanation, setExplanation] = React.useState<boolean>(true);
+  const [explanation, setExplanation] = React.useState<boolean>(false);
+  const [explanationImage, setExplanationImage] = React.useState<string | null>(null);
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  // Cleanup blob URL when component unmounts or image changes
+  React.useEffect(() => {
+    return () => {
+      if (explanationImage) {
+        URL.revokeObjectURL(explanationImage);
+      }
+    };
+  }, [explanationImage]);
+
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
+
+  async function onExplain(){
+    const data = {
+      group_name: group_name,
+      event_title: event_title,
+      event_description: event_description,
+      rule: rule,
+      focus_class: "contradiction",
+    }
+    
+    try {
+      const response = await fetch('http://localhost:4494/explain', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (response.ok) {
+        // Check if the response is an image
+        const contentType = response.headers.get('Content-Type');
+        if (contentType && contentType.startsWith('image/')) {
+          // Handle image response
+          const blob = await response.blob();
+          const imageUrl = URL.createObjectURL(blob);
+          setExplanationImage(imageUrl);
+        } else {
+          // Handle JSON response (fallback)
+          const result = await response.json();
+          console.log(result);
+        }
+        
+        setExplanation(true);
+        setValue(1);
+      } else {
+        console.error('Failed to fetch explanation:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching explanation:', error);
+    }
+  }
 
   return (
     <div className="bg-gray-200 p-4 rounded-lg shadow-md text-blac my-4">
@@ -120,9 +171,24 @@ export default function Report({
           </div>
         </CustomTabPanel>
         <CustomTabPanel value={value} index={1}>
-          <div>
-            <h2 className="text-xl font-semibold">Explanation</h2>
-            <p>Here will be the explanation for the prediction.</p>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold text-black mb-4">Explanation</h2>
+            {explanationImage ? (
+              <div className="flex flex-col items-center">
+                <img 
+                  src={explanationImage} 
+                  alt="Explanation visualization" 
+                  className="max-w-full h-auto rounded-lg shadow-md"
+                />
+                <p className="text-gray-600 mt-2 text-sm">
+                  Visualization showing the model's reasoning for the prediction
+                </p>
+              </div>
+            ) : (
+              <p className="text-gray-500">
+                Click "Explain" to generate a visualization of the model's reasoning.
+              </p>
+            )}
           </div>
         </CustomTabPanel>
       </Box>
