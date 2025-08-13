@@ -14,10 +14,10 @@ explainer = None
 
 def start():
     global model, tokenizer, explainer
-    bart_labels = ["contradiction", "neutral", "entailment"]
-    model = AutoModelForSequenceClassification.from_pretrained("facebook/bart-large-mnli")
-    tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-mnli")
-    explainer = shap.Explainer(f, tokenizer, output_names=bart_labels)
+    roberta_labels = ["contradiction", "neutral", "entailment"]
+    model = AutoModelForSequenceClassification.from_pretrained('joeddav/xlm-roberta-large-xnli')
+    tokenizer = AutoTokenizer.from_pretrained('joeddav/xlm-roberta-large-xnli', use_fast=False)
+    explainer = shap.Explainer(f, tokenizer, output_names=roberta_labels)
     print("NLI pipeline started.")
 
 def f(x):
@@ -42,7 +42,10 @@ def predict(group_name, event_title, event_description, rule):
     logits = model(input_ids)[0]
     probs = logits.softmax(dim=1)
 
-    bart_label_map = {0: "contradiction", 1: "neutral", 2: "entailment"}
+    entail_contradiction_logits = logits[:,[0,2]]
+    probs = entail_contradiction_logits.softmax(dim=1)
+
+    bart_label_map = {0: "contradiction", 1: "entailment"}
     result = {bart_label_map[i]: probs[0][i].item() for i in range(len(bart_label_map))}
     result["decision"] = bart_label_map[probs.argmax().item()]
     return result

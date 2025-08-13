@@ -65,33 +65,12 @@ function App() {
     setPredictions(prev => [...prev, newPrediction]);
   }
 
-  async function handleExplain(prediction: Prediction) {
-    const backendUrl = 'http://localhost:4494/explain'; // Adjust the URL as needed
-    const response = await fetch(backendUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        group_name: prediction.group_name,
-        event_title: prediction.event_title,
-        event_description: prediction.event_description,
-        rule: prediction.rule,
-        focus_class: prediction.decision === 'contradiction' ? 'entailment' : 'contradiction',
-      }),
-    });
-    if (!response.ok) {
-      console.error('Error:', response.statusText);
-      return;
-    }
-  }
-
   return (
     <>
       <div className="bg-blue-900 p-4 rounded-lg">
         <h1 className="text-3xl font-bold">Uoft Room Booking Escalation predictor</h1>
       </div>
-      <form onSubmit={handlePredict} className="flex bg-gray-200 p-4 rounded-lg mt-4">
+      <form onSubmit={handlePredict} className="flex bg-gray-200 p-4 rounded-lg mt-4 flex-col">
       <InputFieldText
           label="Group Name"
           name="group_name"
